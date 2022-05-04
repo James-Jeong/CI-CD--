@@ -23,6 +23,7 @@ EOF'
 sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 sudo systemctl enable kubelet && sudo systemctl start kubelet
 
+-------------------------
 
 @ kubelet 오류 발생 시
 1) [centos@ip-172-31-46-40 ~]$ sudo docker info | grep -i cgroup
@@ -41,7 +42,7 @@ sudo vi /etc/containerd/config.toml
 > Comment disabled_plugins = ["cri"] if exist in config.toml
 sudo systemctl restart containerd
 
-
+-------------------------------------------------
 
 @@ MASTER NODE
 
@@ -57,6 +58,8 @@ kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Doc
 kubectl get nodes
 kubectl get pods -A -o wide
 
+-------------------------
+
 @ RESET (init, join 모두 초기화)
 sudo kubeadm reset
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
@@ -64,6 +67,7 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 sudo systemctl restart kubelet
 
+-------------------------
 @ ROLE
 - 부여
 kubectl label node [node-name] node-role.kubernetes.io/[label-name]=[label-name] --overwrite
@@ -72,6 +76,13 @@ kubectl label node [node-name] node-role.kubernetes.io/[label-name]=[label-name]
 - 삭제
 kubectl label node [node-name] node-role.kubernetes.io/[label-name]-
 
+-------------------------
+
+@ Master 노드에서 worker 노드 지우기
+kubectl delete node [노드 이름] (> kubectl get nodes 명령어 조회 결과)
+kubectl delete node $(kubectl get nodes | grep NotReady | awk '{print $1;}')
+
+-------------------------------------------------
 
 @@ WORKER NODE
 sudo kubeadm join [마스터 노드 IP]:[마스 노드 listen port] --token [토큰값] --discovery-token-ca-cert-hash [토큰 해쉬값]
