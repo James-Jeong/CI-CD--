@@ -1,0 +1,14 @@
+https://argo-cd.readthedocs.io/en/stable/getting_started/
+https://jbhs7014.tistory.com/191
+
+
+kubectl create namespace argo
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+helm install repo argo/argo-cd
+kubectl edit svc repo-argocd-server
+> spec:type:NodePort
+
+kubectl -n default get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+[워커 노드의 공인 IP]:[NodePort] > NodePort 값은 [kubectl edit svc repo-argocd-server] 안에 있음
