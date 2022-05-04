@@ -1,0 +1,47 @@
+@@ HARBOR
+
+(root 계정에 설치 권장)
+
+wget https://github.com/goharbor/harbor/releases/download/v2.5.0/harbor-online-installer-v2.5.0.tgz
+sudo cp harbor-online-installer-v2.5.0.tgz /var/lib
+sudo tar -xzf harbor-online-installer-v2.5.0.tgz
+cd harbor
+sudo cp harbor.yml.tmpl harbor.yml
+sudo vi harbor.yml
+	> hostname: [Public IP]
+	> HTTPS X
+
+# sudo ./install.sh
+
+	Creating harbor-log ... done
+	Creating registry      ... done
+	Creating redis         ... done
+	Creating harbor-portal ... done
+	Creating registryctl   ... done
+	Creating harbor-db     ... done
+	Creating harbor-core   ... done
+	Creating harbor-jobservice ... done
+	Creating nginx             ... done
+	✔ ----Harbor has been installed and started successfully.----
+
+# 변경내역 반영
+sudo ./prepare 
+# docker-compose 재실행 
+sudo docker-compose down -v 
+sudo docker-compose up -d
+
+@ http://[설치된 장비의 공인 IP]:80 로 접속
+> 초기 계정 : admin
+> 초기 비밀번호 : Harbor12345
+
+만약에 인증서 실패되면 일단 임시 방편으로 docker insecure registry 에 등록한다.
+# sudo vi /etc/docker/daemon.json
+> {
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "insecure-registries": ["[공인IP]:80"]
+}
+# sudo service docker restart > Restart harbor ~
+
+# docker login [공인IP]:80
+# docker push localhost:80/ustream/udash_urtmp
+# docker pull localhost:80/ustream/udash_urtmp
