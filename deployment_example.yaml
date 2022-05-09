@@ -14,9 +14,12 @@ spec:
       labels:
         app: udash-urtmp
     spec:
+      hostNetwork: true
       containers:
         - image: localhost:80/ustream/udash_urtmp:latest
           name: udash-urtmp
-          ports:
-            - containerPort: 5858
-            - containerPort: 11945
+            # ports:
+            #- containerPort: 5858
+            #- containerPort: 11945
+      imagePullSecrets:
+        - name: harbor-registry-key
