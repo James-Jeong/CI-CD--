@@ -1,0 +1,16 @@
+[ec2-user@ip-172-31-46-65 udash_urtmp]$ pwd
+/home/ec2-user/deploy/udash_urtmp
+[ec2-user@ip-172-31-46-65 udash_urtmp]$ l
+합계 8
+drwxr-xr-x 2 ec2-user jenkins  49  5월  9 07:06 .
+drwxr-xr-x 3 ec2-user jenkins  25  5월  9 06:52 ..
+-rw-r--r-- 1 ec2-user jenkins 465  5월  9 06:59 deployment.yaml
+-rw-r--r-- 1 ec2-user jenkins 282  5월  9 06:59 service.yaml
+
+
+@ 생성
+kubectl create ns udash-urtmp
+kubectl create -f deployment.yaml
+
+@ 삭제
+kubectl delete ns udash-urtmp
