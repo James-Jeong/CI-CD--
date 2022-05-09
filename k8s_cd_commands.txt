@@ -10,6 +10,7 @@ drwxr-xr-x 3 ec2-user jenkins  25  5월  9 06:52 ..
 
 @ 생성
 kubectl create ns udash-urtmp
+kubectl create -f service.yaml
 kubectl create -f deployment.yaml
 
 @ 삭제
