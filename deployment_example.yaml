@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: udash-urtmp-deployment
+  namespace: udash-urtmp
+spec:
+  replicas: 3
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: udash-urtmp
+  template:
+    metadata:
+      labels:
+        app: udash-urtmp
+    spec:
+      containers:
+        - image: localhost:80/ustream/udash_urtmp:latest
+          name: udash-urtmp
+          ports:
+            - containerPort: 5858
+            - containerPort: 11945
