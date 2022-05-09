@@ -1,14 +1,30 @@
-https://argo-cd.readthedocs.io/en/stable/getting_started/
-https://jbhs7014.tistory.com/191
-
+@@ ArgoCD by helm
 
 kubectl create namespace argo
 helm repo add argo https://argoproj.github.io/argo-helm
+
 helm repo update
-helm install repo argo/argo-cd
-kubectl edit svc repo-argocd-server
-> spec:type:NodePort
+helm show values argo/argo-cd > argocd.yaml
 
-kubectl -n default get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+(Optional)
+kubectl create secret tls argo-tls --cert=/data/cert/yourdomain.com.crt --key=/data/cert/yourdomain.com.key -n argo
 
-[워커 노드의 공인 IP]:[NodePort] > NodePort 값은 [kubectl edit svc repo-argocd-server] 안에 있음
+helm install argocd argo/argo-cd -n argo
+
+kubectl patch svc repo-argocd-server -n argo -p '{"spec": {"type": "NodePort"}}'
+
+ID: admin
+PW: kubectl -n argo get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+
+@ CLI
+
+sudo curl -sSL -o /usr/local/bin/argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo chmod +x /usr/local/bin/argocd
+
+
+@ ArgoCD Rollout
+
+kubectl create namespace argo-rollouts
+kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
+
