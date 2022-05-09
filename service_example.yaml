@@ -1,16 +1,18 @@
 apiVersion: v1
 kind: Service
-metaData:
-  name: udash_urtmp-service
+metadata:
+  name: udash-urtmp-service
   namespace: udash-urtmp
 spec:
   type: NodePort
   selector:
     app: udash-urtmp
   ports:
-    - port: 5858
+    - name: udash
+      port: 5858
       targetPort: 5858
-      nodePort: 5858
-    - port: 11945
+      nodePort: 30200
+    - name: urtmp
+      port: 11945
       targetPort: 11945
-      nodePort: 11945
+      nodePort: 30300
