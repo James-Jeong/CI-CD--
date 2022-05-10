@@ -31,6 +31,12 @@ sudo systemctl enable jenkins
 
 @ Pipeline job 만들 때, [General] > [Do not allow concurrent builds] 체크
 
+@ jenkins 게정 권한에 root 권한 부여
+- sudo visudo
+- ## Allow root to run any commands anywhere
+root    ALL=(ALL)       ALL
+jenkins ALL=(ALL)       NOPASSWD: ALL
+
 3) git 설치
 sudo yum install git
 
@@ -49,8 +55,8 @@ source ~/.bashrc
 mvn -v
 
 5) crudini 설치
-	- wget https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/c/crudini-0.9-1.el7.noarch.rpm
-	- sudo rpm -Uvh crudini-0.9-1.el7.noarch.rpm
+wget https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/c/crudini-0.9-1.el7.noarch.rpm
+sudo rpm -Uvh crudini-0.9-1.el7.noarch.rpm
 
 6) docker 설치
 sudo yum update
@@ -59,7 +65,9 @@ sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/dock
 sudo yum install docker-ce
 sudo systemctl start docker
 sudo systemctl enable docker
+
 sudo usermod -aG docker $USER
+sudo usermod -aG docker jenkins
 sudo chmod 666 /var/run/docker.sock
 
 7) docker-compose 설치
@@ -220,7 +228,13 @@ sudo docker-compose down -v
 sudo docker-compose up -d
 
 10) Helm 설치
-
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+helm version
 
 11) Helm 으로 ArgoCD 설치
+
+
+
 
