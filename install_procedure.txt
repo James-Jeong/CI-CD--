@@ -1,0 +1,226 @@
+0) 기본 환경 구성 - bashrc
+alias l='ls -al'
+alias so='source ~/.bashrc'
+alias b='vi ~/.bashrc'
+
+1) java 11 & wget 설치
+sudo yum -y install wget java-11
+
+2) jenkins 설치
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+sudo yum install jenkins
+
+sudo vi /etc/sysconfig/jenkins > PORT 변경 필요
+<<
+Refer to the documentations in: https://www.jenkins.io/doc/book/installing/linux/#debianubuntu
+
+It says that you can modify by:
+systemctl edit jenkins
+
+Then add the following lines:
+[Service]
+Environment="JENKINS_PORT=8888"
+
+Port should be your desired port to use. Save it and then restart jenkins:
+sudo systemctl restart jenkins
+>>
+
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+@ Pipeline job 만들 때, [General] > [Do not allow concurrent builds] 체크
+
+3) git 설치
+sudo yum install git
+
+4) maven 설치
+cd /usr/local
+sudo wget https://dlcdn.apache.org/maven/maven-3/3.8.5/binaries/apache-maven-3.8.5-bin.tar.gz
+sudo tar -xvf apache-maven-3.8.5-bin.tar.gz
+sudo mv apache-maven-3.8.5/ maven
+vi ~/.bashrc
+<<
+export MAVEN_HOME=/usr/local/maven
+PATH=$PATH:$HOME/bin:$MAVEN_HOME/bin
+export PATH
+>>
+source ~/.bashrc
+mvn -v
+
+5) crudini 설치
+	- wget https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/c/crudini-0.9-1.el7.noarch.rpm
+	- sudo rpm -Uvh crudini-0.9-1.el7.noarch.rpm
+
+6) docker 설치
+sudo yum update
+sudo yum install yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum install docker-ce
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+sudo chmod 666 /var/run/docker.sock
+
+7) docker-compose 설치
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+> root 계정에 설치 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+docker-compose --version
+
+8) Kubernetes 설치
+sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+sudo bash -c \
+'cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF'
+
+sudo sysctl --system
+#sudo lsmod | grep br_netfilter
+
+sudo bash -c \
+'cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+exclude=kube*
+EOF'
+
+sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+sudo systemctl enable kubelet && sudo systemctl start kubelet
+
+
+@ kubelet 오류 발생 시
+1) [centos@ip-172-31-46-40 ~]$ sudo docker info | grep -i cgroup
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 1
+ 
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"]
+}
+EOF
+
+sudo docker info | grep -i cgroup
+
+2) ERROR CRI]: container runtime is not running: output: time="2022-05-04T04:40:43Z" level=fatal msg="getting status of runtime: rpc error: code = Unimplemented desc = unknown service runtime.v1alpha2.RuntimeService"
+
+sudo vi /etc/containerd/config.toml
+> Comment disabled_plugins = ["cri"] if exist in config.toml
+sudo systemctl restart containerd
+sudo service docker restart
+
+---------------------------------
+
+@@ MASTER NODE
+
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+> kubeadm join 172.31.40.245:6443 --token fwvfly.rguxj94rvl7mqp8x --discovery-token-ca-cert-hash sha256:e149ba988aae6b6e721f5e07a879c4aa7592826ce13b03ca34ddaaa4aac7a0f9
+
+sudo kubeadm config images pull
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+kubectl get nodes
+kubectl get pods -A -o wide
+
+@ RESET (init, join 모두 초기화)
+
+sudo kubeadm reset
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+sudo systemctl restart kubelet
+
+
+@ ROLE
+
+- 부여
+kubectl label node [node-name] node-role.kubernetes.io/[label-name]=[label-name] --overwrite
+> kubectl label node ip-172-31-40-129.ap-northeast-2.compute.internal node-role.kubernetes.io/worker-1=worker-1 --overwrite
+
+- 삭제
+kubectl label node [node-name] node-role.kubernetes.io/[label-name]-
+
+
+@ Master 노드에서 worker 노드 지우기
+
+kubectl delete node [노드 이름] (> kubectl get nodes 명령어 조회 결과)
+
+kubectl delete node $(kubectl get nodes | grep NotReady | awk '{print $1;}')
+> crontab
+*/10 * * * * kubectl delete node $(kubectl get nodes | grep NotReady | awk '{print $1;}')
+
+
+---------------------------------
+
+@@ WORKER NODE
+
+sudo kubeadm join 172.31.47.14:6443 --token tgvtow.zq7mauvbobhe2yg7 --discovery-token-ca-cert-hash sha256:9e8a17f4bd54c46e54540cc1ec992acc446a772fe9b45adc50b0794da484ae6e
+
+> 명령어 수행하기 전에 MASTER NODE 인바운드 규칙에 TCP 6443 포트 허용 필요
+
+---------------------------------
+
+9) Harbor 설치
+(root 계정에 설치 권장)
+
+wget https://github.com/goharbor/harbor/releases/download/v2.5.0/harbor-online-installer-v2.5.0.tgz
+sudo cp harbor-online-installer-v2.5.0.tgz /var/lib
+sudo tar -xzf harbor-online-installer-v2.5.0.tgz
+cd harbor
+sudo cp harbor.yml.tmpl harbor.yml
+sudo vi harbor.yml
+> hostname: [공인 IP]
+> HTTPS 설정 : openssl
+  
+mkdir -p ~/certs
+cd ~/certs
+openssl genrsa -out ca.key 4096
+openssl req -x509 -new -nodes -sha512 -days 3650 -subj "/C=KR/ST=Seoul/L=Seoul/O=Uangel/OU=Media/CN=[도메인 또는 IP]" -key ca.key -out ca.crt
+openssl genrsa -out [도메인 또는 IP].key 4096
+openssl req -sha512 -new -subj "/C=KR/ST=Seoul/L=Seoul/O=Uangel/OU=Media/CN=[도메인 또는 IP]" -key [도메인 또는 IP].key -out [도메인 또는 IP].csr
+
+cat > v3_ext.cnf <<-EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+<DNS.1=[도메인]> or <IP.1=[IP]>
+EOF
+
+openssl x509 -req -sha512 -days 3650 -extfile v3_ext.cnf -CA ca.crt -CAkey ca.key -CAcreateserial -in [도메인 또는 IP].csr -out [도메인 또는 IP].crt
+
+# For docker
+openssl x509 -inform PEM -in [도메인 또는 IP].crt -out [도메인 또는 IP]m.cert
+
+sudo vi /usr/local/harbor/harbor.xml
+> https 수정
+- port : 1443
+- certifacte : /etc/pki/ca-trust/source/anchors/[도메인 또는 IP].crt
+- private_key : /etc/pki/ca-trust/source/anchors/[도메인 또는 IP].key
+
+sudo ./install.sh
+
+@ 변경내역 반영
+sudo ./prepare 
+> docker-compose 재실행 
+sudo docker-compose down -v 
+sudo docker-compose up -d
+
+10) Helm 설치
+
+
+11) Helm 으로 ArgoCD 설치
+
