@@ -54,11 +54,14 @@ export PATH
 source ~/.bashrc
 mvn -v
 
-5) crudini 설치
+5) rpmbuild 설치
+yum install rpm-build -y
+
+6) crudini 설치
 wget https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/c/crudini-0.9-1.el7.noarch.rpm
 sudo rpm -Uvh crudini-0.9-1.el7.noarch.rpm
 
-6) docker 설치
+7) docker 설치
 sudo yum update
 sudo yum install yum-utils device-mapper-persistent-data lvm2
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
@@ -70,13 +73,13 @@ sudo usermod -aG docker $USER
 sudo usermod -aG docker jenkins
 sudo chmod 666 /var/run/docker.sock
 
-7) docker-compose 설치
+8) docker-compose 설치
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 > root 계정에 설치 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 docker-compose --version
 
-8) Kubernetes 설치
+9) Kubernetes 설치
 sudo setenforce 0
 sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 
@@ -178,7 +181,7 @@ sudo kubeadm join 172.31.47.14:6443 --token tgvtow.zq7mauvbobhe2yg7 --discovery-
 
 ---------------------------------
 
-9) Harbor 설치
+10) Harbor 설치
 (root 계정에 설치 권장)
 
 wget https://github.com/goharbor/harbor/releases/download/v2.5.0/harbor-online-installer-v2.5.0.tgz
@@ -227,13 +230,13 @@ sudo ./prepare
 sudo docker-compose down -v 
 sudo docker-compose up -d
 
-10) Helm 설치
+11) Helm 설치
 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
 chmod 700 get_helm.sh
 ./get_helm.sh
 helm version
 
-11) Helm 으로 ArgoCD 설치
+12) Helm 으로 ArgoCD 설치
 
 
 
