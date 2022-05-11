@@ -250,4 +250,10 @@ helm install argocd argo/argo-cd -n argo
 kubectl patch svc/argocd-server -n argo -p '{"spec": {"type": "NodePort"}}'
 
 kubectl -n argo get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+@ CLI
+VERSION=v2.0.0; curl -sL -o argocd https://github.com/argoproj/argo-cd/releases/download/$VERSION/argocd-linux-amd64
+chmod +x argocd
+sudo mv argocd /usr/local/bin/argocd
+
 ------------------------------------------------------------------
