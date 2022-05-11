@@ -240,5 +240,14 @@ helm version
 
 ------------------------------------------------------------------
 12) Helm 으로 ArgoCD 설치
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
+helm show values argo/argo-cd > argocd.yaml
+kubectl create secret tls argo-tls --cert=/home/centos/certs/server.cert --key=/home/centos/certs/server.key -n argo
+helm install argocd argo/argo-cd -n argo
 
+! 외부 접속되도록 허용
+kubectl patch svc/argocd-server -n argo -p '{"spec": {"type": "NodePort"}}'
+
+kubectl -n argo get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ------------------------------------------------------------------
