@@ -1,0 +1,47 @@
+< FOR Harbor >
+
+openssl genrsa -out ca.key 4096
+openssl req -x509 -new -nodes -sha512 -days 3650 \
+ -subj "/C=KR/ST=Seoul/L=Seoul=/O=example/OU=Media/CN=[DNS or IP]" \
+ -key ca.key \
+ -out ca.crt
+
+openssl genrsa -out [DNS or IP].key 4096
+openssl req -sha512 -new \
+    -subj "/C=KR/ST=Seoul/L=Seoul=/O=Uangel/OU=Media/CN=[DNS or IP]" \
+    -key ec2-15-164-168-221.ap-northeast-2.compute.amazonaws.com.key \
+    -out ec2-15-164-168-221.ap-northeast-2.compute.amazonaws.com.csr
+-- 
+cat > v3.ext <<-EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1=[DNS or IP]
+EOF
+--
+
+openssl x509 -req -sha512 -days 3650 \
+    -extfile v3.ext \
+    -CA ca.crt -CAkey ca.key -CAcreateserial \
+    -in [DNS or IP].csr \
+    -out [DNS or IP].crt
+
+openssl x509 -inform PEM -in [DNS or IP].crt -out [DNS or IP].cert
+
+
+-------------------------------------------------------------
+sudo vi /usr/local/harbor/harbor.xml
+> https 수정
+- port : 1443
+- certifacte : [절ㄷ 경로]/[DNS 또는 IP].crt
+- private_key : [절대 경로]/[DNS 또는 IP].key
+
+openssl x509 -inform PEM -in [도메인 또는 IP].crt -out [DNS 또는 IP].cert
+sudo cp [DNS 또는 IP].cert /etc/docker/certs.d/[DNS 또는 IP].[포트]/
+sudo cp [DNS 또는 IP].key /etc/docker/certs.d/[DNS 또는 IP].[포트]/
+sudo cp ca.crt /etc/docker/certs.d/[DNS 또는 IP].[포트]/
+sudo systemctl restart docker
