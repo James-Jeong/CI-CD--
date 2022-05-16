@@ -41,6 +41,10 @@ sudo systemctl enable jenkins
 - ## Allow root to run any commands anywhere
 root    ALL=(ALL)       ALL
 jenkins ALL=(ALL)       NOPASSWD: ALL
+
+!!! Kubernetes(kubectl) 와 연동
+> Jenkins 에서 kubectl 쓸려면 jenkins 설치 경로(/var/lib/jenkins/)에 .kube 폴더와 그 안에 config 파일이 있어야 한다.
+> 그리고 복사된 config 파일의 그룹과 사용자가 jenkins:jenkins 로 되어야 한다.
 ------------------------------------------------------------------
 
 ------------------------------------------------------------------
