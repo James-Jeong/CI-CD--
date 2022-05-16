@@ -257,3 +257,14 @@ chmod +x argocd
 sudo mv argocd /usr/local/bin/argocd
 
 ------------------------------------------------------------------
+
+------------------------------------------------------------------
+@ ArgoCD Rollout
+
+kubectl create namespace argo-rollouts
+kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml
+
+kubectl create ns argo-rollouts-test
+kubectl apply -n argo-rollouts-test -f https://raw.githubusercontent.com/argoproj/argo-rollouts/master/docs/getting-started/basic/rollout.yaml
+kubectl apply -n argo-rollouts-test -f https://raw.githubusercontent.com/argoproj/argo-rollouts/master/docs/getting-started/basic/service.yaml
+------------------------------------------------------------------
