@@ -45,3 +45,4 @@ sudo cp [DNS 또는 IP].cert /etc/docker/certs.d/[DNS 또는 IP].[포트]/
 sudo cp [DNS 또는 IP].key /etc/docker/certs.d/[DNS 또는 IP].[포트]/
 sudo cp ca.crt /etc/docker/certs.d/[DNS 또는 IP].[포트]/
 sudo systemctl restart docker
+nsenter --target 1 --mount systemctl restart containerd
