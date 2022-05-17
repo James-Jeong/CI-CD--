@@ -1,6 +1,6 @@
 # CI-CD-NOTE
 ## 1) 구상도
-![스크린샷 2022-05-13 오전 8 32 23](https://user-images.githubusercontent.com/37236920/168183791-c9ab9fd8-baa7-48a3-8e59-34de34340fd2.png)
+![스크린샷 2022-05-18 오전 8 16 35](https://user-images.githubusercontent.com/37236920/168927320-ce2b9c64-5cb2-49e8-9949-3a3f462854b9.png)
   
 ![스크린샷 2022-05-13 오전 8 32 05](https://user-images.githubusercontent.com/37236920/168183762-39707b48-5199-4a23-a13e-c3d74eae972a.png)
   
