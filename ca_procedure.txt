@@ -8,9 +8,9 @@ openssl req -x509 -new -nodes -sha512 -days 3650 \
 
 openssl genrsa -out [DNS or IP].key 4096
 openssl req -sha512 -new \
-    -subj "/C=KR/ST=Seoul/L=Seoul=/O=Uangel/OU=Media/CN=[DNS or IP]" \
-    -key ec2-15-164-168-221.ap-northeast-2.compute.amazonaws.com.key \
-    -out ec2-15-164-168-221.ap-northeast-2.compute.amazonaws.com.csr
+    -subj "/C=KR/ST=Seoul/L=Seoul=/O=example/OU=Media/CN=[DNS or IP]" \
+    -key [DNS or IP].key \
+    -out [DNS or IP].csr
 -- 
 cat > v3.ext <<-EOF
 authorityKeyIdentifier=keyid,issuer
@@ -37,7 +37,7 @@ openssl x509 -inform PEM -in [DNS or IP].crt -out [DNS or IP].cert
 sudo vi /usr/local/harbor/harbor.xml
 > https 수정
 - port : 1443
-- certifacte : [절ㄷ 경로]/[DNS 또는 IP].crt
+- certifacte : [절대 경로]/[DNS 또는 IP].crt
 - private_key : [절대 경로]/[DNS 또는 IP].key
 
 openssl x509 -inform PEM -in [도메인 또는 IP].crt -out [DNS 또는 IP].cert
